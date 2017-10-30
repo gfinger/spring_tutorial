@@ -2,6 +2,7 @@ package com.example.events.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -9,12 +10,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 
-import com.example.events.TestConfiguration;
 import com.example.events.model.Entity;
 
 import lombok.Getter;
@@ -22,11 +24,24 @@ import lombok.Setter;
 
 // Runs the tests using the Spring test context
 @RunWith(SpringRunner.class)
-// Load the test configuration into the application context
-@ContextConfiguration(classes = { TestConfiguration.class })
+@ContextConfiguration
 // Inject the Spring beans where annotated
 @TestExecutionListeners(listeners = { DependencyInjectionTestExecutionListener.class })
 public class BasicRepositoryTest {
+    @Configuration
+    static class TestConfiguration {
+
+        @Bean
+        Map<Long, Entity<Long>> store() {
+            return new HashMap<>();
+        }
+
+        @Bean
+        Repository<Entity<Long>, Long> repository(Map<Long, Entity<Long>> store) {
+            return new BasicRepository<>(store);
+        }
+    }
+
     @Setter
     @Getter
     private static class TestEntity implements Entity<Long> {
