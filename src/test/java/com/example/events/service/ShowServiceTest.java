@@ -1,9 +1,11 @@
 package com.example.events.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -128,11 +130,29 @@ public class ShowServiceTest {
     }
 
     /**
+     * Cleares stores after tests.
+     */
+    @After
+    public void tearDown() throws Exception {
+        cinemaStore.clear();
+        movieStore.clear();
+        showStore.clear();
+    }
+
+    /**
      * Test method for {@link com.example.events.service.ShowService#save(com.example.events.dto.ShowInput)}.
      */
     @Test
     public void testSave() {
-        fail("Not yet implemented");
+        showService.save(showInput);
+        assertThat(showRepository.findAll()).allSatisfy(show -> {
+            assertThat(show.getId()).isEqualTo(1L);
+            assertThat(show.getDay()).isEqualTo("01.11.2017");
+            assertThat(show.getTime()).isEqualTo("21:00");
+            assertThat(show.getPrice()).isEqualTo(11.50);
+            assertThat(show.getMovie()).isEqualTo(movie);
+            assertThat(show.getCinema()).isEqualTo(cinema);
+        });
     }
 
     /**
@@ -140,7 +160,10 @@ public class ShowServiceTest {
      */
     @Test
     public void testFindAllByMovieTitle() {
-        fail("Not yet implemented");
+        showRepository.save(show);
+        assertThat(showService.findAllByMovieTitle("Blade")).allSatisfy(showFull -> {
+            assertThat(showFull.getMovieTitle()).isEqualTo("Blade Runner 2049");
+        });
     }
 
     /**
@@ -148,7 +171,19 @@ public class ShowServiceTest {
      */
     @Test
     public void testFindAllByCinemaName() {
-        fail("Not yet implemented");
+        showRepository.save(show);
+        assertThat(showService.findAllByCinemaName("Luxor")).allSatisfy(showFull -> {
+            assertThat(showFull.getCinemaName()).isEqualTo("Luxor");
+        });
     }
 
+    /**
+     * Not a test. Just to ensure the stores are clean after tests.
+     */
+    @Test
+    public void testStoresAreEmpty() {
+        assertThat(cinemaStore).isEmpty();
+        assertThat(movieStore).isEmpty();
+        assertThat(showStore).isEmpty();
+    }
 }
