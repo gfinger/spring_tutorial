@@ -2,13 +2,12 @@ package com.example.events.service;
 
 import static org.junit.Assert.fail;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
@@ -16,11 +15,11 @@ import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 
+import com.example.events.model.Cinema;
 import com.example.events.model.Movie;
 import com.example.events.model.Show;
-import com.example.events.repository.BasicRepository;
+import com.example.events.repository.CinemaRepository;
 import com.example.events.repository.MovieRepository;
-import com.example.events.repository.Repository;
 import com.example.events.repository.ShowRepository;
 
 /**
@@ -31,6 +30,7 @@ import com.example.events.repository.ShowRepository;
 @ContextConfiguration
 // Inject the Spring beans where annotated
 @TestExecutionListeners(listeners = { DependencyInjectionTestExecutionListener.class })
+@SuppressWarnings("unused")
 public class ShowServiceTest {
     @Configuration
     static class TestConfiguration {
@@ -49,12 +49,43 @@ public class ShowServiceTest {
         ConcurrentHashMap<Long, Movie> movieStore() {
             return new ConcurrentHashMap<>();
         }
-        
-        /*
-         * Define beans for MovieRepository, CinemaStore, CinemaRepository and ShowService.
-         * Inject stores in repositories and repositories in service.  
-         */
+
+        @Bean
+        MovieRepository movieRepository(ConcurrentHashMap<Long, Movie> movieStore) {
+            return new MovieRepository(movieStore);
+        }
+
+        @Bean
+        ConcurrentHashMap<Long, Cinema> cinemaStore() {
+            return new ConcurrentHashMap<>();
+        }
+
+        @Bean
+        CinemaRepository cinemaRepository(ConcurrentHashMap<Long, Cinema> cinemaStore) {
+            return new CinemaRepository(cinemaStore);
+        }
+
+        @Bean
+        ShowService showService(CinemaRepository cinemaRepository, MovieRepository movieRepository,
+                ShowRepository showRepository) {
+            return new ShowService(cinemaRepository, movieRepository, showRepository);
+        }
     }
+    
+    @Autowired
+    private ConcurrentHashMap<Long, Cinema> cinemaStore;
+    @Autowired
+    private ConcurrentHashMap<Long, Movie> movieStore;
+    @Autowired
+    private ConcurrentHashMap<Long, Show> showStore;
+    @Autowired
+    private CinemaRepository cinemaRepository;
+    @Autowired
+    private MovieRepository movieRepository;
+    @Autowired
+    private ShowRepository showRepository;
+    @Autowired
+    private ShowService showService;
 
     /**
      * Common initialization to be executed before every test.
