@@ -15,6 +15,7 @@ import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 
+import com.example.events.dto.ShowInput;
 import com.example.events.model.Cinema;
 import com.example.events.model.Movie;
 import com.example.events.model.Show;
@@ -86,12 +87,44 @@ public class ShowServiceTest {
     private ShowRepository showRepository;
     @Autowired
     private ShowService showService;
-
+    
+    private Cinema cinema;
+    private Movie movie;
+    private Show show;
+    private ShowInput showInput;
+    
     /**
      * Common initialization to be executed before every test.
      */
     @Before
     public void setUp() throws Exception {
+        cinema = new Cinema();
+        cinema.setId(1L);
+        cinema.setName("Luxor");
+        cinema.setCity("Bensheim");
+        cinema.setZipCode("64625");
+        cinema.setStreet("Berliner Ring 26");
+
+        movie = new Movie();
+        movie.setId(1L);
+        movie.setTitle("Blade Runner 2049");
+        movie.setRating(8.5);
+
+        show = new Show();
+        show.setId(1L);
+        show.setCinema(cinema);
+        show.setMovie(movie);
+        show.setDay("01.11.2017");
+        show.setTime("21:00");
+        show.setPrice(11.50);
+
+        showInput = new ShowInput();
+        showInput.setId(1L);
+        showInput.setCinemaId(1L);
+        showInput.setMovieId(1L);
+        showInput.setDay("01.11.2017");
+        showInput.setTime("21:00");
+        showInput.setPrice(11.50);
     }
 
     /**
