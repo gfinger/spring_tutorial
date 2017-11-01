@@ -15,6 +15,7 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import com.example.events.dto.ShowFull;
 import com.example.events.dto.ShowInput;
 import com.example.events.model.Cinema;
 import com.example.events.model.Movie;
@@ -121,5 +122,14 @@ public class ShowServiceTest {
         assertThat(showService.findAllByCinemaName("Luxor")).allSatisfy(showFull -> {
             assertThat(showFull.getCinemaName()).isEqualTo("Luxor");
         });
+    }
+
+    /**
+     * Test method for {@link com.example.events.service.ShowService#findById(java.lang.Long)}.
+     */
+    public void testFindById() {
+        when(showRepository.findById(show.getId())).thenReturn(show);
+        assertThat(showService.findById(show.getId()))
+                .isEqualToComparingFieldByFieldRecursively(ShowFull.fromShow(show));
     }
 }

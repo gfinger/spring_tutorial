@@ -3,6 +3,8 @@ package com.example.events.service;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
+import org.springframework.stereotype.Component;
+
 import com.example.events.dto.ShowFull;
 import com.example.events.dto.ShowInput;
 import com.example.events.model.Cinema;
@@ -12,6 +14,7 @@ import com.example.events.repository.CinemaRepository;
 import com.example.events.repository.MovieRepository;
 import com.example.events.repository.ShowRepository;
 
+@Component
 public class ShowService {
     private CinemaRepository cinemaRepository;
     private MovieRepository movieRepository;
@@ -79,5 +82,9 @@ public class ShowService {
         Collection<Show> shows = showRepository.findAll();
         return shows.stream().filter(show -> show.getCinema().getName().startsWith(cinemaName)).map(ShowFull::fromShow)
                 .collect(Collectors.toList());
+    }
+    
+    public ShowFull findById(Long id) {
+        return ShowFull.fromShow(showRepository.findById(id));
     }
 }
