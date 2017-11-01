@@ -1,21 +1,19 @@
 package com.example.events.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.List;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import com.example.events.dto.ShowInput;
 import com.example.events.model.Cinema;
@@ -28,78 +26,32 @@ import com.example.events.repository.ShowRepository;
 /**
  * Unit tests of show service.
  */
-// Runs the tests using the Spring test context
-@RunWith(SpringRunner.class)
-@ContextConfiguration
-// Inject the Spring beans where annotated
-@TestExecutionListeners(listeners = { DependencyInjectionTestExecutionListener.class })
-@SuppressWarnings("unused")
+@RunWith(MockitoJUnitRunner.class)
 public class ShowServiceTest {
-    @Configuration
-    static class TestConfiguration {
-
-        @Bean
-        ConcurrentHashMap<Long, Show> showStore() {
-            return new ConcurrentHashMap<>();
-        }
-
-        @Bean
-        ShowRepository showRepository(ConcurrentHashMap<Long, Show> showStore) {
-            return new ShowRepository(showStore);
-        }
-
-        @Bean
-        ConcurrentHashMap<Long, Movie> movieStore() {
-            return new ConcurrentHashMap<>();
-        }
-
-        @Bean
-        MovieRepository movieRepository(ConcurrentHashMap<Long, Movie> movieStore) {
-            return new MovieRepository(movieStore);
-        }
-
-        @Bean
-        ConcurrentHashMap<Long, Cinema> cinemaStore() {
-            return new ConcurrentHashMap<>();
-        }
-
-        @Bean
-        CinemaRepository cinemaRepository(ConcurrentHashMap<Long, Cinema> cinemaStore) {
-            return new CinemaRepository(cinemaStore);
-        }
-
-        @Bean
-        ShowService showService(CinemaRepository cinemaRepository, MovieRepository movieRepository,
-                ShowRepository showRepository) {
-            return new ShowService(cinemaRepository, movieRepository, showRepository);
-        }
-    }
-    
-    @Autowired
-    private ConcurrentHashMap<Long, Cinema> cinemaStore;
-    @Autowired
-    private ConcurrentHashMap<Long, Movie> movieStore;
-    @Autowired
-    private ConcurrentHashMap<Long, Show> showStore;
-    @Autowired
+    @Mock
     private CinemaRepository cinemaRepository;
-    @Autowired
+    @Mock
     private MovieRepository movieRepository;
-    @Autowired
+    @Mock
     private ShowRepository showRepository;
-    @Autowired
+
+    @Captor
+    private ArgumentCaptor<Show> showCaptor;
+
     private ShowService showService;
-    
     private Cinema cinema;
     private Movie movie;
     private Show show;
     private ShowInput showInput;
-    
+
     /**
      * Common initialization to be executed before every test.
      */
     @Before
     public void setUp() throws Exception {
+        // inject mocked repositories into service
+        showService = new ShowService(cinemaRepository, movieRepository, showRepository);
+
         cinema = new Cinema();
         cinema.setId(1L);
         cinema.setName("Luxor");
@@ -134,9 +86,6 @@ public class ShowServiceTest {
      */
     @After
     public void tearDown() throws Exception {
-        cinemaStore.clear();
-        movieStore.clear();
-        showStore.clear();
     }
 
     /**
@@ -144,15 +93,12 @@ public class ShowServiceTest {
      */
     @Test
     public void testSave() {
+        when(cinemaRepository.findById(1L)).thenReturn(cinema);
+        when(movieRepository.findById(1L)).thenReturn(movie);
         showService.save(showInput);
-        assertThat(showRepository.findAll()).allSatisfy(show -> {
-            assertThat(show.getId()).isEqualTo(1L);
-            assertThat(show.getDay()).isEqualTo("01.11.2017");
-            assertThat(show.getTime()).isEqualTo("21:00");
-            assertThat(show.getPrice()).isEqualTo(11.50);
-            assertThat(show.getMovie()).isEqualTo(movie);
-            assertThat(show.getCinema()).isEqualTo(cinema);
-        });
+        // The show service creates its own show object, which we want to capture to test it.
+        verify(showRepository).save(showCaptor.capture());
+        assertThat(showCaptor.getValue()).isEqualToComparingFieldByField(show);
     }
 
     /**
@@ -160,7 +106,7 @@ public class ShowServiceTest {
      */
     @Test
     public void testFindAllByMovieTitle() {
-        showRepository.save(show);
+        when(showRepository.findAll()).thenReturn(List.of(show));
         assertThat(showService.findAllByMovieTitle("Blade")).allSatisfy(showFull -> {
             assertThat(showFull.getMovieTitle()).isEqualTo("Blade Runner 2049");
         });
@@ -171,19 +117,9 @@ public class ShowServiceTest {
      */
     @Test
     public void testFindAllByCinemaName() {
-        showRepository.save(show);
+        when(showRepository.findAll()).thenReturn(List.of(show));
         assertThat(showService.findAllByCinemaName("Luxor")).allSatisfy(showFull -> {
             assertThat(showFull.getCinemaName()).isEqualTo("Luxor");
         });
-    }
-
-    /**
-     * Not a test. Just to ensure the stores are clean after tests.
-     */
-    @Test
-    public void testStoresAreEmpty() {
-        assertThat(cinemaStore).isEmpty();
-        assertThat(movieStore).isEmpty();
-        assertThat(showStore).isEmpty();
     }
 }
