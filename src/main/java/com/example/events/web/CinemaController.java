@@ -30,10 +30,14 @@ public class CinemaController {
      */
     @PostMapping("save")
     public ResponseEntity<Cinema> save(@RequestBody Cinema cinema) {
-        return null;
+        cinemaRepository.save(cinema);
+        return ResponseEntity
+                .created(ServletUriComponentsBuilder.fromCurrentRequest().path("/" + cinema.getId()).build().toUri())
+                .body(cinema);
     }
 
+    @GetMapping("{id}")
     public Cinema byId(@PathVariable Long id) {
-        return null;
+        return cinemaRepository.findById(id);
     }
 }
