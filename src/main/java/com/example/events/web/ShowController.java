@@ -12,8 +12,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.example.events.ObjectAlreadyExistsException;
+import com.example.events.ObjectNotFoundException;
 import com.example.events.dto.ShowFull;
 import com.example.events.dto.ShowInput;
+import com.example.events.model.Show;
 import com.example.events.service.ShowService;
 
 @RestController
@@ -41,10 +44,23 @@ public class ShowController {
     public Collection<ShowFull> byCinemaName(@RequestParam String name) {
         return showService.findAllByCinemaName(name);
     }
-    
+
+    /**
+     * Get show by id.
+     * 
+     * @param id
+     *            id of show
+     * @return ShowFull view of found show.
+     * @throws ObjectNotFoundException
+     *             if show with id was not found.
+     */
     @GetMapping(path = "{id}")
-    public ShowFull byId(@PathVariable Long id) {
-        return showService.findById(id);
+    public ShowFull byId(@PathVariable Long id) throws ObjectNotFoundException {
+        ShowFull showFull = showService.findById(id);
+        if (showFull == null) {
+            throw ObjectNotFoundException.builder().objectType(Show.class).id(id.toString()).build();
+        }
+        return showFull;
     }
 
     /**
@@ -53,9 +69,14 @@ public class ShowController {
      * @param showInput
      *            {@link ShowInput}
      * @return input object
+     * @throws ObjectAlreadyExistsException  if show with given id already exists.
      */
     @PostMapping(path = "save")
-    public ResponseEntity<ShowInput> save(@RequestBody ShowInput showInput) {
+    public ResponseEntity<ShowInput> save(@RequestBody ShowInput showInput) throws ObjectAlreadyExistsException {
+        if (showService.findById(showInput.getId()) != null) {
+            throw ObjectAlreadyExistsException.builder().objectType(Show.class).id(showInput.getId().toString())
+                    .build();
+        }
         showService.save(showInput);
         return ResponseEntity
                 .created(ServletUriComponentsBuilder.fromCurrentRequest().path("/" + showInput.getId()).build().toUri())

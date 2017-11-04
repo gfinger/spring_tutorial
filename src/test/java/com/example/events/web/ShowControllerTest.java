@@ -23,7 +23,10 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.util.NestedServletException;
 
+import com.example.events.ObjectAlreadyExistsException;
+import com.example.events.ObjectNotFoundException;
 import com.example.events.WebConfig;
 import com.example.events.dto.ShowFull;
 import com.example.events.dto.ShowInput;
@@ -101,8 +104,22 @@ public class ShowControllerTest {
     public void testFindById() throws Exception {
         when(showService.findById(show.getId())).thenReturn(ShowFull.fromShow(show));
         mockMvc.perform(get("/show/1")).andExpect(status().isOk())
-        .andExpect(content().contentTypeCompatibleWith("application/json"))
-        .andExpect(jsonPath("$.price").value(show.getPrice()));
+                .andExpect(content().contentTypeCompatibleWith("application/json"))
+                .andExpect(jsonPath("$.price").value(show.getPrice()));
+    }
+
+    @Test(expected = NestedServletException.class)
+    public void testFindByIdException() throws Exception {
+        when(showService.findById(0L)).thenReturn(null);
+        try {
+            mockMvc.perform(get("/show/0")).andExpect(status().isInternalServerError());
+        } catch (NestedServletException servletException) {
+            Object cause = servletException.getCause();
+            assertThat(cause).isExactlyInstanceOf(ObjectNotFoundException.class);
+            assertThat(cause).hasFieldOrPropertyWithValue("id", "0");
+            assertThat(cause).hasFieldOrPropertyWithValue("objectType", Show.class);
+            throw servletException;
+        }
     }
 
     @Test
@@ -114,5 +131,21 @@ public class ShowControllerTest {
         verify(showService).save(captor.capture());
         ShowInput param = captor.getValue();
         assertThat(param).isEqualToComparingFieldByField(showInput);
+    }
+
+    @Test(expected = NestedServletException.class)
+    public void testSaveException() throws Exception {
+        when(showService.findById(showInput.getId())).thenReturn(ShowFull.fromShow(show));
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            mockMvc.perform(post("/show/save").content(objectMapper.writeValueAsString(showInput))
+                    .contentType(MediaType.APPLICATION_JSON)).andExpect(status().isInternalServerError());
+        } catch (NestedServletException servletException) {
+            Object cause = servletException.getCause();
+            assertThat(cause).isExactlyInstanceOf(ObjectAlreadyExistsException.class);
+            assertThat(cause).hasFieldOrPropertyWithValue("id", "1");
+            assertThat(cause).hasFieldOrPropertyWithValue("objectType", Show.class);
+            throw servletException;
+        }
     }
 }

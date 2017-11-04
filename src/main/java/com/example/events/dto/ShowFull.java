@@ -33,19 +33,22 @@ public class ShowFull {
      * @return new ShowFull object
      */
     public static ShowFull fromShow(Show show) {
-        ShowFull showFull = new ShowFull();
-        showFull.setPrice(show.getPrice());
-        showFull.setDay(show.getDay());
-        showFull.setTime(show.getTime());
-        if (show.getMovie() != null) {
-            showFull.setMovieTitle(show.getMovie().getTitle());
-            showFull.setMovieRating(show.getMovie().getRating());
-        }
-        if (show.getCinema() != null) {
-            showFull.setCinemaName(show.getCinema().getName());
-            showFull.setCinemaAddress(
-                show.getCinema().getZipCode() + " " + show.getCinema().getCity() + ", " + show.getCinema().getStreet());
-            showFull.setCinemaPhone(show.getCinema().getPhone());
+        ShowFull showFull = null;
+        if (show != null) {
+            showFull = new ShowFull();
+            showFull.setPrice(show.getPrice());
+            showFull.setDay(show.getDay());
+            showFull.setTime(show.getTime());
+            if (show.getMovie() != null) {
+                showFull.setMovieTitle(show.getMovie().getTitle());
+                showFull.setMovieRating(show.getMovie().getRating());
+            }
+            if (show.getCinema() != null) {
+                showFull.setCinemaName(show.getCinema().getName());
+                showFull.setCinemaAddress(show.getCinema().getZipCode() + " " + show.getCinema().getCity() + ", "
+                        + show.getCinema().getStreet());
+                showFull.setCinemaPhone(show.getCinema().getPhone());
+            }
         }
         return showFull;
     }
