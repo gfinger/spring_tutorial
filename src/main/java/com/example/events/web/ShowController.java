@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -64,12 +65,13 @@ public class ShowController {
     }
 
     /**
-     * Create a show object in the show store.
+     * Create a show object in the show store, if it does not already exist.
      * 
      * @param showInput
      *            {@link ShowInput}
      * @return input object
-     * @throws ObjectAlreadyExistsException  if show with given id already exists.
+     * @throws ObjectAlreadyExistsException
+     *             if show with given id already exists.
      */
     @PostMapping(path = "save")
     public ResponseEntity<ShowInput> save(@RequestBody ShowInput showInput) throws ObjectAlreadyExistsException {
@@ -77,6 +79,21 @@ public class ShowController {
             throw ObjectAlreadyExistsException.builder().objectType(Show.class).id(showInput.getId().toString())
                     .build();
         }
+        showService.save(showInput);
+        return ResponseEntity
+                .created(ServletUriComponentsBuilder.fromCurrentRequest().path("/" + showInput.getId()).build().toUri())
+                .body(showInput);
+    }
+
+    /**
+     * Create a show object in the show store.
+     * 
+     * @param showInput
+     *            {@link ShowInput}
+     * @return input object
+     */
+    @PutMapping(path = "save")
+    public ResponseEntity<ShowInput> update(@RequestBody ShowInput showInput) {
         showService.save(showInput);
         return ResponseEntity
                 .created(ServletUriComponentsBuilder.fromCurrentRequest().path("/" + showInput.getId()).build().toUri())
