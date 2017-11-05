@@ -3,17 +3,16 @@ package com.example.events;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
 
 import com.example.events.model.Cinema;
 import com.example.events.model.Movie;
 import com.example.events.model.Show;
 
-@Configuration
-@ComponentScan(basePackages = { "com.example.events.repository", "com.example.events.service" })
-public class RootConfig {
+@SpringBootApplication
+public class ShareeventsApplication extends SpringBootServletInitializer {
     @Bean
     public ConcurrentHashMap<Long, Cinema> cinemaStore() {
         return new ConcurrentHashMap<>();

@@ -14,15 +14,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 
-import com.example.events.WebConfig;
 import com.example.events.dto.ShowInput;
 import com.example.events.model.Cinema;
 import com.example.events.model.Movie;
@@ -31,13 +28,11 @@ import com.example.events.repository.CinemaRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RunWith(SpringRunner.class)
-@WebAppConfiguration
-@ContextConfiguration(classes = { WebConfig.class, TestWebConfig.class })
+@WebMvcTest(CinemaController.class)
 public class CinemaControllerTest {
-    @Autowired
+    @MockBean
     private CinemaRepository cinemaRepository;
     @Autowired
-    private WebApplicationContext wac;
     private MockMvc mockMvc;
 
     private Cinema cinema;
@@ -74,8 +69,6 @@ public class CinemaControllerTest {
         showInput.setDay("01.11.2017");
         showInput.setTime("21:00");
         showInput.setPrice(11.50);
-
-        mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
     }
 
     @Test
